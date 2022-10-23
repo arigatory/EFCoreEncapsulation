@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace EFCoreEncapsulation.Api;
 
@@ -16,13 +17,23 @@ public class StudentController : ControllerBase
     [HttpGet("{id}")]
     public StudentDto Get(long id)
     {
-        Student student = _context.Students.Find(id);
+        Student student = _context.Students
+            .Include(x => x.Enrollments)
+            .ThenInclude(x => x.Course)
+            .SingleOrDefault(x => x.Id == id);
+        if (student is null)
+            return null;
 
         return new StudentDto
         {
             StudentId = student.Id,
             Name = student.Name,
-            Email = student.Email
+            Email = student.Email,
+            Enrollments = student.Enrollments.Select(x => new EnrollmentDto
+            {
+                Course = x.Course.Name,
+                Grade = x.Grade.ToString()
+            }).ToList()
         };
     }
 }
