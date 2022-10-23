@@ -8,19 +8,17 @@ namespace EFCoreEncapsulation.Api;
 public class StudentController : ControllerBase
 {
     private readonly SchoolContext _context;
+    private readonly StudentRepository _repository;
 
-    public StudentController(SchoolContext context)
+    public StudentController(StudentRepository studentRepository)
     {
-        _context = context;
+        _repository = studentRepository;
     }
 
     [HttpGet("{id}")]
     public StudentDto Get(long id)
     {
-        Student student = _context.Students
-            .Include(x => x.Enrollments)
-            .ThenInclude(x => x.Course)
-            .SingleOrDefault(x => x.Id == id);
+        Student student = _repository.GetById(id);
         if (student is null)
             return null;
 
